@@ -5,12 +5,21 @@
   border-top: 1px solid var(--hairline);
   user-select: none;
   position: relative;
+  /* allow tooltip to bleed up into the map area */
+  overflow: visible;
 }
 
 .host {
   position: relative;
   width: 100%;
   height: 100%;
+  /* clipping is delegated to .ruler-wrap so the tooltip can escape upward */
+  overflow: visible;
+}
+
+.ruler-wrap {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
@@ -24,9 +33,13 @@
 
 .ruler:active { cursor: grabbing; }
 
+/* TICKS ------------------------------------------------------------------- */
+
 .tick { stroke-width: 1; fill: none; }
 .tick.minor { stroke: var(--hairline); }
 .tick.major { stroke: var(--ink-soft); }
+
+/* LABELS ------------------------------------------------------------------ */
 
 .year-label {
   font-family: var(--font-body);
@@ -40,11 +53,13 @@
 
 .year-label.epoch { fill: var(--ink); font-style: italic; }
 
+/* ERAS -------------------------------------------------------------------- */
+
 .era-line {
-  stroke: var(--hairline);
+  stroke: var(--hairline-bright);
   stroke-width: 1;
   stroke-dasharray: 1 3;
-  opacity: 0.55;
+  opacity: 0.7;
   transition: opacity 160ms linear, stroke 160ms linear;
   pointer-events: none;
 }
@@ -55,21 +70,15 @@
   opacity: 1;
 }
 
-.era-label {
-  font-family: var(--font-body);
-  font-style: italic;
-  font-size: 9px;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  fill: var(--ink-soft);
+.era-dot {
+  fill: var(--brass);
+  stroke: none;
   opacity: 0.55;
-  text-anchor: end;
-  transition: opacity 160ms linear, fill 160ms linear;
+  transition: opacity 160ms linear, r 160ms var(--ease-quick);
   pointer-events: none;
 }
 
-.era-label.is-hovered {
-  fill: var(--brass);
+.era-dot.is-hovered {
   opacity: 1;
 }
 
@@ -77,6 +86,8 @@
   fill: transparent;
   cursor: pointer;
 }
+
+/* CURSOR ------------------------------------------------------------------ */
 
 .cursor-line {
   stroke: var(--brass);
@@ -123,10 +134,81 @@
   }
 }
 
+/* ERA TOOLTIP ------------------------------------------------------------- */
+
+.era-tooltip {
+  position: absolute;
+  top: 48px;            /* aligns with the era dot */
+  left: 0;
+  pointer-events: none;
+  z-index: 12;
+  /* center horizontally on the era marker; lift above the timeline */
+  transform: translate(-50%, calc(-100% - 14px));
+  animation: era-fade-in 160ms var(--ease-out);
+}
+
+@keyframes era-fade-in {
+  from { opacity: 0; transform: translate(-50%, calc(-100% - 8px)); }
+  to   { opacity: 1; transform: translate(-50%, calc(-100% - 14px)); }
+}
+
+.era-tooltip .tooltip-card {
+  position: relative;
+  background: var(--ground-raised);
+  border: 1px solid var(--hairline-bright);
+  padding: 14px 20px 14px;
+  white-space: nowrap;
+  min-width: 96px;
+  text-align: left;
+}
+
+.era-tooltip .tooltip-card::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--hairline);
+  pointer-events: none;
+}
+
+.era-tooltip .year {
+  display: block;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--ink-bright);
+  letter-spacing: 0.04em;
+  font-feature-settings: 'lnum' 1;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.era-tooltip .label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+.era-tooltip .tooltip-tail {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: var(--ground-raised);
+  border-right: 1px solid var(--hairline-bright);
+  border-bottom: 1px solid var(--hairline-bright);
+  transform: translateX(-50%) rotate(45deg);
+}
+
 @media (max-width: 640px) {
-  .era-label { font-size: 8px; }
   .cursor-readout {
     .anno { font-size: 7px; }
     .plain { font-size: 11px; }
   }
+  .era-tooltip .year { font-size: 16px; }
+  .era-tooltip .label { font-size: 12px; }
 }

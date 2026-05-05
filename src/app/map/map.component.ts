@@ -1,5 +1,5 @@
 import {
-  AfterViewInit, Component, Input, OnInit, ViewChild, isDevMode
+  AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, isDevMode
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
@@ -47,7 +47,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   @ViewChild('aboutBar') aboutBar!: OhmSidenavComponent;
   @ViewChild('hereBar')  hereBar!:  OhmSidenavComponent;
   @ViewChild('shareBar') shareBar!: OhmSidenavComponent;
-  @ViewChild('screen', { static: false }) screen: any;
+  @ViewChild('screen', { static: false }) screen!: ElementRef<HTMLElement>;
 
   constructor(
     private env: EnvService,
@@ -170,11 +170,12 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   copyShare() {
-    if (!this.screen?.elementRef?.nativeElement) {
+    const target = this.screen?.nativeElement;
+    if (!target) {
       this.shareSnack('Open the map first');
       return;
     }
-    this.capture.getImage(this.screen.elementRef.nativeElement, true).subscribe(img => {
+    this.capture.getImage(target, true).subscribe(img => {
       this.ohm.su(window.location.href, img).subscribe(data => {
         this.clipboard.copy(data);
         this.shareLink = data;

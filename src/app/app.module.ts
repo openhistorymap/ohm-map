@@ -17,7 +17,6 @@ import { OhmTimelineComponent } from './timeline/timeline.component';
 import { DecimaldatePipe } from './decimaldate.pipe';
 import { NicedatePipe } from './nicedate.pipe';
 import { DateComponent } from './date/date.component';
-import { ShareDirective } from './share.directive';
 import { EnvService } from './env.service';
 
 @NgModule({
@@ -30,8 +29,7 @@ import { EnvService } from './env.service';
     OhmTimelineComponent,
     DecimaldatePipe,
     NicedatePipe,
-    DateComponent,
-    ShareDirective
+    DateComponent
   ],
   imports: [
     BrowserModule,
