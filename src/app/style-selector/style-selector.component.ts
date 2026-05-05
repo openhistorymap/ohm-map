@@ -2,8 +2,6 @@ import { HttpClient } from '@angular/common/http';
 import {
   Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output
 } from '@angular/core';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 
 interface MapStyle {
   style: string;
@@ -22,7 +20,7 @@ export class StyleSelectorComponent implements OnInit {
 
   @Output() styleChange = new EventEmitter<string>();
 
-  styles$: Observable<MapStyle[]>;
+  styles: MapStyle[] = [];
   selected = 'political.json';
   selectedLabel = 'Political';
   open = false;
@@ -30,16 +28,21 @@ export class StyleSelectorComponent implements OnInit {
   constructor(private http: HttpClient, private host: ElementRef) {}
 
   ngOnInit(): void {
-    this.styles$ = this.http.get<MapStyle[]>(this.styleBase + 'styles.json').pipe(
-      tap((list) => {
-        const def = list.find(a => a.default) ?? list[0];
+    /* Fetch immediately — do NOT gate this behind an async pipe in the
+       template, or the default style won't be picked until the dropdown
+       opens, which leaves the map sitting on its boot style. */
+    this.http.get<MapStyle[]>(this.styleBase + 'styles.json').subscribe({
+      next: (list) => {
+        this.styles = list ?? [];
+        const def = this.styles.find(a => a.default) ?? this.styles[0];
         if (def) {
           this.selected = def.style;
           this.selectedLabel = def.label;
           this.styleChange.emit(this.styleBase + def.style);
         }
-      })
-    );
+      },
+      error: () => { /* leave styles empty; map stays on boot style */ }
+    });
   }
 
   pick(s: MapStyle) {

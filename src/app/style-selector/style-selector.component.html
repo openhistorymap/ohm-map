@@ -8,7 +8,7 @@
     <span class="label">{{ selectedLabel }}</span>
   </button>
   <ul class="menu" *ngIf="open" role="listbox" [attr.aria-label]="'Map style'">
-    <li *ngFor="let s of styles$ | async"
+    <li *ngFor="let s of styles"
         role="option"
         [class.is-selected]="s.style === selected"
         (click)="pick(s)">
