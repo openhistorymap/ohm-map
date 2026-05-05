@@ -27,12 +27,22 @@ jobs:
 
       - run: npm ci
 
-      - name: Inject runtime env
-        if: vars.TILESERVER != ''
+      - name: Apply runtime env overrides
+        env:
+          OHM_TILESERVER: ${{ vars.TILESERVER }}
+          OHM_MAPTILER_KEY: ${{ vars.MAPTILER_KEY }}
         run: |
-          cat > src/assets/env.json <<EOF
-          { "TILESERVER": "${{ vars.TILESERVER }}" }
-          EOF
+          node -e '
+            const fs = require("fs");
+            const path = "src/assets/env.json";
+            const env = JSON.parse(fs.readFileSync(path, "utf8"));
+            const overrides = {
+              TILESERVER: process.env.OHM_TILESERVER,
+              MAPTILER_KEY: process.env.OHM_MAPTILER_KEY,
+            };
+            for (const [k, v] of Object.entries(overrides)) if (v) env[k] = v;
+            fs.writeFileSync(path, JSON.stringify(env, null, 2));
+          '
 
       - name: Build
         run: npx ng build --configuration production --base-href "${{ vars.BASE_HREF || '/' }}"

@@ -27,6 +27,7 @@ declare const vis: any;
 export class MapComponent implements OnInit {
   map: maplibregl.Map;
   ts: string;
+  maptilerKey: string;
 
   layers: any;
   startstopicons = {
@@ -84,6 +85,7 @@ export class MapComponent implements OnInit {
       this.infoData = data;
     });
     this.ts = this.env.getEnv('TILESERVER');
+    this.maptilerKey = this.env.getEnv('MAPTILER_KEY');
     this.ar.params.subscribe(params => {
       this.atDate = params.year;
       this.start.center = [params.x, params.y];
@@ -115,6 +117,11 @@ export class MapComponent implements OnInit {
         if (resourceType === 'Tile' && url.indexOf('openhistory') >= 0) {
           return {
             url: nurl.replace('{atDate}', this.atDate.toString())
+          };
+        }
+        if (this.maptilerKey && url.indexOf('api.maptiler.com') >= 0 && url.indexOf('key=') < 0) {
+          return {
+            url: nurl + (nurl.indexOf('?') >= 0 ? '&' : '?') + 'key=' + this.maptilerKey
           };
         }
         return undefined;
