@@ -17,6 +17,19 @@ import { DateComponent } from './../date/date.component';
 import { EnvService } from './../env.service';
 import { OhmSidenavComponent } from './../sidenav/sidenav.component';
 
+/** Minimal boot style — renders a solid warm-near-black background so the
+ *  map paints immediately on first load, before the real OHM style JSON
+ *  has finished its trip from raw.githubusercontent.com. setStyle() swaps
+ *  this out as soon as the real style arrives. */
+const BOOT_STYLE: any = {
+  version: 8,
+  name: 'OHM boot',
+  sources: {},
+  layers: [
+    { id: 'background', type: 'background', paint: { 'background-color': '#1f1c19' } }
+  ]
+};
+
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -85,14 +98,16 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.initMap());
+    /* Two RAFs: first to let the grid lay out, second so MapLibre measures
+       a non-zero container before sizing its canvas. */
+    requestAnimationFrame(() => requestAnimationFrame(() => this.initMap()));
   }
 
   initMap() {
     if (this.map) return;
     this.map = new maplibregl.Map({
       container: 'ohm_map',
-      style: this.style,
+      style: this.style ?? BOOT_STYLE,
       center: this.start.center,
       zoom: this.start.zoom,
       canvasContextAttributes: { preserveDrawingBuffer: true },
@@ -133,10 +148,31 @@ export class MapComponent implements OnInit, AfterViewInit {
     });
   }
 
+  private styleReadyListener?: () => void;
+
   changeStyle(style: string): void {
     this.style = style;
     if (!this.map) return;
-    try { this.map.setStyle(style); } catch { /* swallow */ }
+
+    /* If a previous style change is still waiting for its style to finish
+       loading, drop its listener so we don't double-add overlays. */
+    if (this.styleReadyListener) {
+      this.map.off('styledata', this.styleReadyListener);
+      this.styleReadyListener = undefined;
+    }
+
+    try {
+      this.map.setStyle(style);
+      const listener = () => {
+        if (!this.map.isStyleLoaded()) return;
+        this.map.off('styledata', listener);
+        this.styleReadyListener = undefined;
+        this.showOverlays();
+        this.showRels();
+      };
+      this.styleReadyListener = listener;
+      this.map.on('styledata', listener);
+    } catch { /* swallow */ }
   }
 
   onYearChange(year: number) {
@@ -216,6 +252,10 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   showOverlays() {
     if (!this.map.getSource('ohm-ephemeral')) return;
+    /* Idempotent — drop our own overlays from the previous style first. */
+    for (const id of ['ships', 'planes', 'human', 'events']) {
+      if (this.map.getLayer(id)) this.map.removeLayer(id);
+    }
     this.map.addLayer({
       id: 'ships', type: 'circle', source: 'ohm-ephemeral', 'source-layer': 'movement',
       filter: ['all', ['==', 'type', 'ship']],
@@ -244,6 +284,13 @@ export class MapComponent implements OnInit, AfterViewInit {
     const cols = rc.map(x => x.split(':').length > 1 ? x.split(':')[1] : '232323');
     const wids = rc.map(x => x.split(':').length > 2 ? parseFloat(x.split(':')[2]) : 2);
     const opas = rc.map(x => x.split(':').length > 3 ? parseFloat(x.split(':')[3]) : 0.2);
+
+    if (this.map.getLayer('rel-movements-labels')) this.map.removeLayer('rel-movements-labels');
+    rels.forEach(id => {
+      const lid = 'rel-movements-' + id;
+      if (this.map.getLayer(lid)) this.map.removeLayer(lid);
+    });
+    if (this.map.getSource('ohm-movement-rels')) this.map.removeSource('ohm-movement-rels');
 
     this.map.addSource('ohm-movement-rels', {
       type: 'geojson',
