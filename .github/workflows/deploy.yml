@@ -1,0 +1,57 @@
+name: Deploy ohm-map
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Inject runtime env
+        if: vars.TILESERVER != ''
+        run: |
+          cat > src/assets/env.json <<EOF
+          { "TILESERVER": "${{ vars.TILESERVER }}" }
+          EOF
+
+      - name: Build
+        run: npx ng build --configuration production --base-href "${{ vars.BASE_HREF || '/' }}"
+
+      - name: Add SPA fallbacks
+        run: |
+          cp dist/ohm-map/browser/index.html dist/ohm-map/browser/404.html
+          printf '/*    /index.html   200\n' > dist/ohm-map/browser/_redirects
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/ohm-map/browser
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,20 +1,21 @@
+import { APP_INITIALIZER, NgModule, inject } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { provideHttpClient } from '@angular/common/http';
+import { provideMatomo } from 'ngx-matomo-client';
+import { withRouter } from 'ngx-matomo-client/router';
+
 import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './shared.module';
-import { MnConfiguratorModule } from '@modalnodes/mn-configurator';
-import { MnDockerModule } from '@modalnodes/mn-docker';
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { MatomoModule } from 'ngx-matomo';
-
 import { AppComponent } from './app.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MapComponent } from './map/map.component';
 import { StyleSelectorComponent } from './style-selector/style-selector.component';
 import { DecimaldatePipe } from './decimaldate.pipe';
 import { NicedatePipe } from './nicedate.pipe';
 import { DateComponent } from './date/date.component';
-import {ClipboardModule} from '@angular/cdk/clipboard';
 import { ShareDirective } from './share.directive';
+import { EnvService } from './env.service';
 
 @NgModule({
   declarations: [
@@ -31,12 +32,23 @@ import { ShareDirective } from './share.directive';
     BrowserAnimationsModule,
     AppRoutingModule,
     ClipboardModule,
-    MnDockerModule,
-    MnConfiguratorModule,
-    SharedModule,
-    MatomoModule
+    SharedModule
   ],
-  providers: [],
+  providers: [
+    provideHttpClient(),
+    provideMatomo(
+      { trackerUrl: '//tracker.openhistorymap.org/', siteId: 2 },
+      withRouter()
+    ),
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: () => {
+        const env = inject(EnvService);
+        return () => env.load();
+      }
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

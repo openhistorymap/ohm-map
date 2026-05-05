@@ -1,56 +1,56 @@
-import { OhmService } from './../ohm.service';
-import { DateComponent } from './../date/date.component';
-import { DecimaldatePipe } from './../decimaldate.pipe';
 import { Component, OnInit, Input, isDevMode, ViewChild } from '@angular/core';
-
-import { MnDockerService } from '@modalnodes/mn-docker';
 import { HttpClient } from '@angular/common/http';
-
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { Observable } from 'rxjs';
-import { MatomoTracker } from 'ngx-matomo';
 import { MatSidenav } from '@angular/material/sidenav';
-import { Clipboard } from '@angular/cdk/clipboard';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { Observable } from 'rxjs';
+import { MatomoTracker } from 'ngx-matomo-client';
 import { NgxCaptureService } from 'ngx-capture';
+import maplibregl from 'maplibre-gl';
 
-declare const mapboxgl;
-declare const vis;
+import { OhmService } from './../ohm.service';
+import { DateComponent } from './../date/date.component';
+import { DecimaldatePipe } from './../decimaldate.pipe';
+import { EnvService } from './../env.service';
+
+declare const vis: any;
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
-  styleUrls: ['./map.component.scss']
+  styleUrls: ['./map.component.scss'],
+  standalone: false
 })
 export class MapComponent implements OnInit {
-  map;
-  ts;
+  map: maplibregl.Map;
+  ts: string;
 
-  layers;
+  layers: any;
   startstopicons = {
     stop: 'play_arrow',
     play: 'stop'
   };
   startstopicon = 'play_arrow';
   startstopstatus = 'stop';
-  startstopInterval;
+  startstopInterval: any;
 
-  @Input() style;
+  @Input() style: string;
 
-  start = {
+  start: { center: [number, number]; zoom: number } = {
     center: [1.57, 43.67],
     zoom: 3.5
   };
 
-  rels;
+  rels: string;
 
-  atDate = 866.001;
+  atDate: number = 866.001;
   atMacroDate = 800;
   atMicroDate = 870;
 
-  timeline;
+  timeline: any;
 
   speed = 2000;
 
@@ -64,9 +64,10 @@ export class MapComponent implements OnInit {
 
   share_link: string;
 
-  selectedFeatures = [];
+  selectedFeatures: any[] = [];
+
   constructor(
-    private ds: MnDockerService,
+    private env: EnvService,
     private ar: ActivatedRoute,
     private l: Location,
     private md: MatDialog,
@@ -81,9 +82,8 @@ export class MapComponent implements OnInit {
   ngOnInit(): void {
     this.http.get('assets/info.json').subscribe(data => {
       this.infoData = data;
-    })
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYWJyaWNrbyIsImEiOiJjanRkajJ4dzYwZGcwNDNvOGQybnZ2aWU0In0.dHeKsAVs3BmZ0biKTOi7wg';
-    this.ts = this.ds.getEnv('TILESERVER');
+    });
+    this.ts = this.env.getEnv('TILESERVER');
     this.ar.params.subscribe(params => {
       this.atDate = params.year;
       this.start.center = [params.x, params.y];
@@ -97,14 +97,13 @@ export class MapComponent implements OnInit {
     this.start.center = [this.ar.snapshot.params.x, this.ar.snapshot.params.y];
     this.start.zoom = this.ar.snapshot.params.z;
     this.rels = this.ar.snapshot.params.rels;
-    this.style = this.style;
 
-    this.map = new mapboxgl.Map({
+    this.map = new maplibregl.Map({
       container: 'ohm_map',
-      style: this.style, // stylesheet location
-      center: this.start.center, // starting position [lng, lat]
-      zoom: this.start.zoom, // starting zoom
-      preserveDrawingBuffer: true,
+      style: this.style,
+      center: this.start.center,
+      zoom: this.start.zoom,
+      canvasContextAttributes: { preserveDrawingBuffer: true },
       transformRequest: (url, resourceType) => {
         let nurl = url;
         if (isDevMode()) {
@@ -118,8 +117,8 @@ export class MapComponent implements OnInit {
             url: nurl.replace('{atDate}', this.atDate.toString())
           };
         }
+        return undefined;
       }
-
     });
 
     this.map.on('load', () => {
@@ -136,42 +135,38 @@ export class MapComponent implements OnInit {
     });
     this.map.on('mouseenter', () => {
       this.map.getCanvas().style.cursor = 'pointer';
-      });
-       
-      // Change it back to a pointer when it leaves.
-      this.map.on('mouseleave', () => {
-        this.map.getCanvas().style.cursor = '';
-      });
+    });
+
+    this.map.on('mouseleave', () => {
+      this.map.getCanvas().style.cursor = '';
+    });
     this.map.on('click', (e) => {
       console.log(e.lngLat);
-      this.ohm.drilldown(e.lngLat).subscribe(feats=>{
-        //this.ibar.open();
-        if(feats.length > 0) {
+      this.ohm.drilldown(e.lngLat).subscribe(feats => {
+        if (feats.length > 0) {
           this.selectedFeatures = feats;
           console.log(feats[0].properties);
-          new mapboxgl.Popup()
+          new maplibregl.Popup()
             .setLngLat(e.lngLat)
             .addTo(this.map);
         }
-
-      })
       });
-      
+    });
 
     const container = document.getElementById('visualization');
 
     const items = new vis.DataSet([]);
 
-
-      // Create a Timeline
     this.timeline = new vis.Timeline(container, items, {
       showCurrentTime: false
     });
 
     this.timeline.addCustomTime(this.toFloatDate(this.atDate), 'atTime');
     const d = this.toFloatDate(this.atDate);
-    // tslint:disable-next-line:max-line-length
-    this.timeline.setWindow(new Date(d.getFullYear() - 10, d.getMonth(), d.getDate()), new Date(d.getFullYear() + 10, d.getMonth(), d.getDate()));
+    this.timeline.setWindow(
+      new Date(d.getFullYear() - 10, d.getMonth(), d.getDate()),
+      new Date(d.getFullYear() + 10, d.getMonth(), d.getDate())
+    );
 
 
     this.timeline.on('click', (properties) => {
@@ -180,44 +175,51 @@ export class MapComponent implements OnInit {
       this.changeUrl(this.atDate);
     });
 
-    this.timeline.on('rangechanged', (properties) => {
-    });
+    this.timeline.on('rangechanged', () => {});
   }
 
-  copy_url(){
-    this.capture.getImage(this.screen.elementRef.nativeElement, true).subscribe(img=>{
-      this.ohm.su(window.location.href, img).subscribe(data =>{
+  copy_url() {
+    this.capture.getImage(this.screen.elementRef.nativeElement, true).subscribe(img => {
+      this.ohm.su(window.location.href, img).subscribe(data => {
         this.clipboard.copy(data);
         this.share_link = data;
         this.sharebar.open();
-        this._snackBar.open('Address ready to share','Close', {
+        this._snackBar.open('Address ready to share', 'Close', {
           duration: 1000
         });
       });
-    })
+    });
   }
 
-  changeUrl(ev = null): void{
+  changeUrl(ev: number | null = null): void {
     const c = this.map.getCenter();
-    this.l.go(`/${this.atDate}/${this.map.getZoom()}/${c.lat}/${c.lng}` + (this.rels ? '/' + this.rels : ''));
-    this.matomoTracker.trackPageView(`/${this.atDate}/${this.map.getZoom()}/${c.lat}/${c.lng}` + (this.rels ? '/' + this.rels : ''));
+    const path = `/${this.atDate}/${this.map.getZoom()}/${c.lat}/${c.lng}` + (this.rels ? '/' + this.rels : '');
+    this.l.go(path);
+    this.matomoTracker.trackPageView(path);
     if (ev) {
-      this.map.getSource('ohm').setSourceProperty(() => { });
-      this.map.getSource('ohm-boundaries')?.setSourceProperty(() => { });
-      this.map.getSource('ohm-ephemeral')?.setSourceProperty(() => { });
-      this.map.getSource('ohm-transportation')?.setSourceProperty(() => { });
+      this.refreshTileSource('ohm');
+      this.refreshTileSource('ohm-boundaries');
+      this.refreshTileSource('ohm-ephemeral');
+      this.refreshTileSource('ohm-transportation');
     }
     this.events = this.ohm.getEvents(ev);
   }
 
-  changeStyle(style): void  {
-    this.style = style;
-    try{
-      this.map.setStyle(style);
-    } catch(ex) { }
+  private refreshTileSource(id: string): void {
+    const src: any = this.map.getSource(id);
+    if (src && typeof src.setTiles === 'function' && Array.isArray(src.tiles)) {
+      src.setTiles(src.tiles);
+    }
   }
 
-  toDateFloat(date: Date): number{
+  changeStyle(style: string): void {
+    this.style = style;
+    try {
+      this.map.setStyle(style);
+    } catch (ex) { }
+  }
+
+  toDateFloat(date: Date): number {
     let ret = date.getFullYear();
     ret += (date.getMonth() + 1) / 12;
     ret += (date.getDate()) * (1 / 12 / 31);
@@ -227,7 +229,7 @@ export class MapComponent implements OnInit {
     return ret;
   }
 
-  toFloatDate(date: number): Date{
+  toFloatDate(date: number): Date {
     const dd = new DecimaldatePipe();
     return dd.transform(date);
   }
@@ -254,7 +256,7 @@ export class MapComponent implements OnInit {
     });
   }
 
-  setSpeed(speed) {
+  setSpeed(speed: number) {
     this.speed = speed;
     if (this.startstopInterval) {
       clearInterval(this.startstopInterval);
@@ -265,7 +267,6 @@ export class MapComponent implements OnInit {
   info() {}
 
   showOverlays() {
-    console.log('run');
     this.map.addLayer({
       id: 'ships',
       type: 'circle',
@@ -311,57 +312,6 @@ export class MapComponent implements OnInit {
         'circle-radius': 2
       }
     });
-    /*
-    this.map.addLayer({
-      id: 'ships-labels',
-      type: 'symbol',
-      source: 'ohm-ephemeral',
-      'source-layer': 'movement',
-      filter: [
-        'any',
-        ['==', 'type', 'ship'],
-        ['==', 'type', 'aircraft'],
-      ],
-      layout: {
-        'text-field': {
-          stops: [
-            [1, ''],
-            [2, '{service} {name}'],
-            [5, '{service} {name} - {ship:nationality}'],
-            [13, '{service} {name} - {ship:nationality}']
-          ]
-        },
-        'text-size': {
-          stops: [[6, 10], [10, 13]]
-        },
-        'text-allow-overlap': true,
-        'text-ignore-placement': false,
-        'text-offset': [0, -1],
-        'text-max-width': 12
-      }
-    });
-    */
-    /*
-    this.map.addLayer({
-      id: 'human-labels',
-      type: 'symbol',
-      source: 'ohm-ephemeral',
-      'source-layer': 'movement',
-      filter: [
-        'all',
-        ['==', 'type', 'human']
-      ],
-      layout: {
-        'text-field': '{name}',
-        'text-font': ['Open Sans Regular'],
-        'text-size': 10,
-        'text-allow-overlap': false,
-        'text-ignore-placement': false,
-        'text-offset': [0, -1],
-        'text-max-width': 12
-      }
-    });
-    */
     this.map.addLayer({
       id: 'events',
       type: 'circle',
@@ -373,28 +323,9 @@ export class MapComponent implements OnInit {
         'circle-radius': 1.5
       }
     });
-    /*
-    this.map.addLayer({
-      id: 'events-labels',
-      type: 'symbol',
-      source: 'ohm-ephemeral',
-      'source-layer': 'event',
-      layout: {
-        'text-field': '{name}',
-        'text-font': ['Open Sans Regular'],
-        'text-size': {
-          stops: [[6, 10], [10, 13]]
-        },
-        'text-allow-overlap': true,
-        'text-ignore-placement': false,
-        'text-offset': [0, -1],
-        'text-max-width': 12
-      }
-    });
-    */
   }
 
-  goTimeSpace(time: number, space: any): void  {
+  goTimeSpace(time: number, space: any): void {
     this.l.go(`/${time}/${this.map.getZoom()}/${space.coordinates[0]}/${space.coordinates[1]}` + (this.rels ? '/' + this.rels : ''));
   }
 
@@ -405,12 +336,9 @@ export class MapComponent implements OnInit {
       const cols = rc.map(x => x.split(':').length > 1 ? x.split(':')[1] : '232323');
       const wids = rc.map(x => x.split(':').length > 2 ? parseFloat(x.split(':')[2]) : 2);
       const opas = rc.map(x => x.split(':').length > 3 ? parseFloat(x.split(':')[3]) : 0.2);
-      const zip = (arr1, arr2) => arr1.map((k, i) => [k, arr2[i]]);
+      const zip = (arr1: any[], arr2: any[]) => arr1.map((k, i) => [k, arr2[i]]);
 
       const rcs = zip(rels, cols);
-
-
-      console.log(rcs);
 
       this.map.addSource('ohm-movement-rels', {
         type: 'geojson',
@@ -437,16 +365,14 @@ export class MapComponent implements OnInit {
         type: 'symbol',
         source: 'ohm-movement-rels',
         layout: {
-          'text-field': {
-            stops: [
-              [1, ''],
-              [4, '{name}']
-            ]
-          },
+          'text-field': [
+            'step', ['zoom'],
+            '',
+            4, ['get', 'name']
+          ],
           'text-size': 9
         }
       });
     }
-
   }
 }

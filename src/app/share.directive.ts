@@ -4,7 +4,8 @@ import { Directive, Input } from '@angular/core';
   selector: '[share]',
   host: {
     "(click)": "onClick($event)"
- }
+  },
+  standalone: false
 })
 export class ShareDirective {
 

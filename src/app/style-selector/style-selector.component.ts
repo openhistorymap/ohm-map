@@ -7,7 +7,8 @@ import { tap } from 'rxjs/operators';
 @Component({
   selector: 'ohm-style-selector',
   templateUrl: './style-selector.component.html',
-  styleUrls: ['./style-selector.component.scss']
+  styleUrls: ['./style-selector.component.scss'],
+  standalone: false
 })
 export class StyleSelectorComponent implements OnInit {
   @Input() styleBase = 'https://raw.githubusercontent.com/openhistorymap/mapstyles/master/';
