@@ -1,0 +1,37 @@
+<header class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.5"></circle>
+      <path d="M8 0.5 V15.5 M0.5 8 H15.5"></path>
+      <circle class="dot" cx="8" cy="8" r="1.4"></circle>
+    </svg>
+    <span class="word desktop">Open History Map</span>
+    <span class="word mobile">OHM</span>
+  </div>
+
+  <div class="year" aria-live="polite" aria-atomic="true">{{ yearLabel }}</div>
+
+  <nav class="actions" aria-label="Map actions">
+    <ohm-style-selector class="style" (styleChange)="styleChange.emit($event)"></ohm-style-selector>
+
+    <button class="iconbtn" type="button" (click)="info.emit()" aria-label="About this map">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <circle cx="8" cy="3.5" r="1.1" class="solid"></circle>
+        <path d="M8 6 L8 13"></path>
+      </svg>
+    </button>
+
+    <button class="iconbtn" type="button" (click)="share.emit()" aria-label="Share">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <path d="M5 2.5 H10.5 V8 M10.5 2.5 L4 9"></path>
+        <path d="M2.5 11 V13.5 H13.5 V11"></path>
+      </svg>
+    </button>
+
+    <button class="iconbtn" type="button" (click)="menu.emit()" aria-label="Menu">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <path d="M2 5 H14 M2 8 H14 M2 11 H14"></path>
+      </svg>
+    </button>
+  </nav>
+</header>

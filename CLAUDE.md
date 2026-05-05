@@ -63,9 +63,11 @@ Bundled into the Angular build:
 
 - **maplibre-gl** (and its CSS, registered in `angular.json` styles) — the entire map runtime.
 
-Loaded via `<script>` in `src/index.html` and used as a global (`declare const vis: any;`):
+Loaded as web fonts in `src/index.html`:
 
-- **vis-timeline** (`@latest` from unpkg) — bottom timeline ruler. If you bump or replace it, edit `index.html` directly.
+- **Marcellus SC** + **EB Garamond** from Google Fonts. The whole UI is set in those two families; do not introduce a third without updating the design context.
+
+`vis-timeline` was removed in the chrome+timeline craft pass. The bottom ruler is a custom `OhmTimelineComponent` (`src/app/timeline/`) drawn in SVG — see "Custom timeline" below.
 
 ## Map sources and styles
 
@@ -83,9 +85,16 @@ Loaded via `<script>` in `src/index.html` and used as a global (`declare const v
 
 ## Modules and components map
 
-- `AppModule` declares `MapComponent`, `StyleSelectorComponent`, `DateComponent`, `DecimaldatePipe`, `NicedatePipe`, `ShareDirective`. Providers include `provideHttpClient()`, `provideMatomo({ trackerUrl, siteId }, withRouter())`, and the `APP_INITIALIZER` that runs `EnvService.load()`.
-- `SharedModule` re-exports a long list of `@angular/material` modules — add new Material imports there, not in `AppModule`.
+- `AppModule` declares `MapComponent`, `StyleSelectorComponent`, `OhmTopbarComponent`, `OhmSidenavComponent`, `OhmTimelineComponent`, `DateComponent`, `DecimaldatePipe`, `NicedatePipe`, `ShareDirective`. Providers include `provideHttpClient()`, `provideMatomo({ trackerUrl, siteId }, withRouter())`, and the `APP_INITIALIZER` that runs `EnvService.load()`.
+- `SharedModule` is now lean — just `MatDialogModule` and `MatSnackBarModule` (and `CommonModule` / `FormsModule`). All other Material chrome was dropped in the chrome+timeline craft pass; chrome is now hand-built.
 - The legacy `@modalnodes/mn-docker` / `mn-configurator` / `mn-registry` packages from the Angular 10 era have been removed. `MnDockerService.getEnv()` was inlined as `EnvService` (`src/app/env.service.ts`).
+
+## Custom timeline (`src/app/timeline/`)
+
+- SVG-based ruler. Independent of vis-timeline, MapLibre, or any third-party timeline lib.
+- Tick density is computed from `pxPerYear` and switches between four scales: 1/10-year, 10/100-year, 100/1000-year, and 1000/5000-year. Wheel zooms; drag pans; click sets year; mid-flight `year` input changes animate the cursor with `ease-out-quart` over 320ms.
+- Era markers (`assets/eras.json`) are curated cultural pivot points rendered as faint dashed verticals with rotated italic labels. The component falls back to an inline list if the JSON fetch fails. Replace the JSON file (or override the component's `[eraSource]` input) to change the curated set.
+- Cursor: brass vertical hairline (1.25px) with diamond caps at top and bottom edges, plus a two-line readout (`anno` in Marcellus SC small caps + plain `<year> CE/BCE` in EB Garamond italic).
 
 ## Analytics
 
@@ -97,8 +106,44 @@ Loaded via `<script>` in `src/index.html` and used as a global (`declare const v
 
 ## Gotchas
 
-- Several toolbar buttons are `disabled` in `map.component.html` (start/stop, speed, right sidebar, person, info-pin) — features that exist in code but are intentionally hidden. Don't enable them without checking the related TODOs.
+- The play/stop, speed-menu, person and ephemeral-events buttons that existed in the old Material toolbar were dropped during the chrome+timeline craft pass. Their MapComponent methods (`startstop`, `setSpeed`, `selectDate`, etc.) still exist but are no longer called from any template — re-wire when the feature is ready.
 - `MapComponent.start.center` is read from `ar.snapshot.params` as **strings**, not numbers. MapLibre accepts them, but if you do arithmetic on them, `parseFloat` first.
 - `tsconfig.json` keeps `strict: false` and `strictTemplates: false` because the original code is too loose for strict mode. Tightening these is a separate task and will require typing the many `any` fields in `MapComponent`.
 - `transformRequest` only rewrites `Tile` resource requests in dev mode; the source-spec metadata fetches still go to the prod URL. This matches the original behavior; do not "fix" it without coordinating with the tileserver layout.
-- MapLibre lacks Mapbox v1's `setSourceProperty` — `refreshTileSource` uses `VectorTileSource.setTiles(tiles)` instead. If a refresh stops working after a maplibre upgrade, that's the place to look.
+- MapLibre lacks Mapbox v1's `setSourceProperty` — `refreshTileSource` uses `VectorTileSource.setTiles(tiles)` instead, substituting `{atDate}` into the original templated pattern (stashed as `_ohmOriginalTiles`) so each year is a distinct cache key. If a refresh stops working after a maplibre upgrade, that's the place to look.
+
+## Design Context
+
+### Users
+Primary: the **history enthusiast** — a curious adult who reads pop-history, browses Wikipedia rabbit holes, plays Crusader Kings, watches documentaries. Late-evening sessions on laptop or tablet, often arriving via a shared link. Patient. Will reward depth.
+
+Job to be done: *"Show me what the world looked like in [year] and let me wander."* Discovery, not analytics. The interface should invite drift, not optimize click-paths.
+
+### Brand Personality
+Scholarly + archival + considered. Writes like a museum exhibit caption — confident, factual, never breathless. The emotional goal is the calm of a well-lit reading room at 10pm.
+
+### Aesthetic Direction
+**Dark — library at night.** Warm-near-black ground, ivory body text, one brass / aged-gold accent for live interaction. No secondary color. No gradients.
+
+Spirit references: 19th-century historical atlas plates; the brass year-dial on an antique astronomical clock; a David Rumsey scan viewed full-screen at night.
+
+Anti-references (must not look like): Angular Material default (admin-app), Web3 / cyberpunk neon, SaaS dashboard chrome (cards, sidenavs, KPI tiles).
+
+### Design Principles
+
+1. **The map is sovereign.** Chrome lives in the margins. No floating panels.
+2. **Time is a tactile object.** The timeline ruler is the spine of the experience and gets the most craft — engraved, typeset, weighted cursor, hairline ticks. Not a default vis-timeline.
+3. **Quiet contrast.** Warm-near-black ground, ivory text, ONE brass accent reserved for the live cursor / active state — used sparingly so it carries weight.
+4. **Editorial, not templated.** Asymmetry where it earns its place. No card grids. Sidenavs feel like inserted plates in an atlas, not nav drawers.
+5. **Restraint everywhere except the moment of state change.** When the year advances, the world changes — that transition earns motion. Everything else is still.
+
+### Type / color
+Type pairing TBD at craft time. **Banned defaults**: Inter, DM Sans, Fraunces, Crimson, Playfair, Cormorant, IBM Plex *, Space Grotesk, Outfit, Plus Jakarta Sans, Instrument *, Newsreader, Lora, Syne. Look further (Pangram Pangram, Velvetyne, Klim, Adobe Fonts).
+
+OKLCH targets (approximate, to be tuned against the map style):
+- Ground: `oklch(0.18 0.012 60)` — warm-near-black, tinted umber.
+- Body: `oklch(0.92 0.015 80)` — ivory.
+- Brass accent (one only): `oklch(0.74 0.12 75)`.
+- Hairlines: `oklch(0.32 0.01 60)`.
+
+Full version of this section lives in `.impeccable.md` at the project root.

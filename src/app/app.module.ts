@@ -11,6 +11,9 @@ import { SharedModule } from './shared.module';
 import { AppComponent } from './app.component';
 import { MapComponent } from './map/map.component';
 import { StyleSelectorComponent } from './style-selector/style-selector.component';
+import { OhmTopbarComponent } from './topbar/topbar.component';
+import { OhmSidenavComponent } from './sidenav/sidenav.component';
+import { OhmTimelineComponent } from './timeline/timeline.component';
 import { DecimaldatePipe } from './decimaldate.pipe';
 import { NicedatePipe } from './nicedate.pipe';
 import { DateComponent } from './date/date.component';
@@ -22,6 +25,9 @@ import { EnvService } from './env.service';
     AppComponent,
     MapComponent,
     StyleSelectorComponent,
+    OhmTopbarComponent,
+    OhmSidenavComponent,
+    OhmTimelineComponent,
     DecimaldatePipe,
     NicedatePipe,
     DateComponent,

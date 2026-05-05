@@ -1,0 +1,96 @@
+:host {
+  position: relative;
+  display: inline-block;
+}
+
+.wrap { position: relative; }
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color 120ms linear, border-color 120ms linear;
+
+  .glyph {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    stroke-linejoin: round;
+  }
+
+  .label { line-height: 1; margin-top: 1px; }
+
+  &:hover, &:focus-visible {
+    color: var(--ink);
+    border-color: var(--hairline-bright);
+    outline: none;
+  }
+
+  &[aria-expanded="true"] {
+    color: var(--brass);
+    border-color: var(--brass-soft);
+  }
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--ground-raised);
+  border: 1px solid var(--hairline);
+  z-index: 20;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--hairline);
+    pointer-events: none;
+  }
+}
+
+.menu li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: color 120ms linear, background-color 120ms linear;
+  letter-spacing: 0.02em;
+
+  & + li { border-top: 1px solid var(--hairline); }
+
+  .dot {
+    width: 4px;
+    height: 4px;
+    background: transparent;
+    border: 1px solid var(--ink-soft);
+  }
+
+  &:hover, &:focus-visible {
+    color: var(--brass);
+    outline: none;
+  }
+
+  &.is-selected {
+    color: var(--ink-bright);
+    .dot { background: var(--brass); border-color: var(--brass); }
+  }
+}

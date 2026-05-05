@@ -1,0 +1,187 @@
+/* ViewEncapsulation.None — selectors are namespaced with .ohm-sidenav-* */
+
+.ohm-sidenav-scrim {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.10 0.012 60 / 0.55);
+  z-index: 8;
+  animation: ohm-sidenav-scrim-in 200ms var(--ease-out);
+}
+
+@keyframes ohm-sidenav-scrim-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ohm-sidenav-panel {
+  position: fixed;
+  top: var(--topbar-h);
+  bottom: var(--timeline-h);
+  width: 320px;
+  max-width: 90vw;
+  background: var(--ground-raised);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  z-index: 9;
+  transition: transform 240ms var(--ease-quick);
+  will-change: transform;
+}
+
+.ohm-sidenav-panel[data-position="start"] {
+  left: 0;
+  border-right: 1px solid var(--hairline);
+  transform: translateX(-100%);
+}
+
+.ohm-sidenav-panel[data-position="end"] {
+  right: 0;
+  border-left: 1px solid var(--hairline);
+  transform: translateX(100%);
+}
+
+.ohm-sidenav-panel.is-open { transform: translateX(0); }
+
+/* The deckle frame — an inset hairline rectangle inside the panel */
+.ohm-sidenav-panel::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid var(--hairline);
+  pointer-events: none;
+}
+
+.ohm-sidenav-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 28px 18px;
+}
+
+.ohm-sidenav-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--ink-soft);
+  line-height: 1;
+}
+
+.ohm-sidenav-close {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  padding: 4px;
+  cursor: pointer;
+  transition: color 120ms linear;
+  display: inline-flex;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    stroke-linecap: round;
+  }
+
+  &:hover, &:focus-visible {
+    color: var(--brass);
+    outline: none;
+  }
+}
+
+.ohm-sidenav-body {
+  position: relative;
+  overflow-y: auto;
+  padding: 0 28px 28px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.65;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+
+.ohm-sidenav-body::-webkit-scrollbar { width: 4px; }
+.ohm-sidenav-body::-webkit-scrollbar-track { background: transparent; }
+.ohm-sidenav-body::-webkit-scrollbar-thumb { background: var(--hairline); }
+
+/* Projected content styling — atlas-list rows */
+.ohm-sidenav-body .nav-list { display: block; }
+
+.ohm-sidenav-body .nav-list a {
+  display: block;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  transition: color 120ms linear, border-bottom-color 120ms linear;
+}
+
+.ohm-sidenav-body .nav-list a:hover,
+.ohm-sidenav-body .nav-list a:focus-visible {
+  color: var(--brass);
+  border-bottom-color: var(--brass-soft);
+  outline: none;
+}
+
+.ohm-sidenav-body .nav-list a:last-child {
+  border-bottom: none;
+}
+
+.ohm-sidenav-body .nav-list a .meta {
+  display: block;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.ohm-sidenav-body .prose {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 60ch;
+}
+
+.ohm-sidenav-body .prose p { margin: 0 0 16px; }
+
+.ohm-sidenav-body .prose a {
+  color: var(--ink-bright);
+  border-bottom: 1px solid var(--hairline);
+  transition: color 120ms linear, border-bottom-color 120ms linear;
+}
+
+.ohm-sidenav-body .prose a:hover {
+  color: var(--brass);
+  border-bottom-color: var(--brass);
+}
+
+.ohm-sidenav-body .empty {
+  padding: 24px 0;
+  color: var(--ink-soft);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.ohm-sidenav-body .share-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 15px;
+  cursor: pointer;
+  transition: color 120ms linear;
+}
+.ohm-sidenav-body .share-row:hover { color: var(--brass); }
+.ohm-sidenav-body .share-row svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  flex-shrink: 0;
+}

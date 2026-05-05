@@ -1,0 +1,50 @@
+.ohm-date-dialog {
+  padding: 24px 28px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  min-width: 280px;
+}
+
+.ohm-date-dialog .title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.ohm-date-dialog .placeholder {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 20px;
+  max-width: 36ch;
+}
+
+.ohm-date-dialog .actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--hairline);
+  padding-top: 16px;
+}
+
+.ohm-date-dialog .actions button {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--ink-soft);
+  padding: 8px 18px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 120ms linear, border-color 120ms linear;
+}
+
+.ohm-date-dialog .actions button:hover,
+.ohm-date-dialog .actions button:focus-visible {
+  color: var(--brass);
+  border-color: var(--brass-soft);
+  outline: none;
+}

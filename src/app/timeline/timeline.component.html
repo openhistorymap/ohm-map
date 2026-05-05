@@ -1,0 +1,72 @@
+<div class="host" #host>
+  <svg class="ruler"
+       [attr.viewBox]="'0 0 ' + width + ' ' + height"
+       [attr.width]="width"
+       [attr.height]="height"
+       (pointerdown)="onPointerDown($event)"
+       (pointermove)="onPointerMove($event)"
+       (pointerup)="onPointerUp($event)"
+       (pointercancel)="onPointerUp($event)"
+       (wheel)="onWheel($event)"
+       preserveAspectRatio="none">
+
+    <g class="ticks">
+      <line *ngFor="let t of ticks"
+            [attr.x1]="t.x" [attr.x2]="t.x"
+            [attr.y1]="t.major ? 0 : 6"
+            [attr.y2]="t.major ? 22 : 14"
+            [attr.class]="t.major ? 'tick major' : 'tick minor'"
+            shape-rendering="crispEdges"></line>
+    </g>
+
+    <g class="labels">
+      <text *ngFor="let t of ticks"
+            [attr.x]="t.x" y="36"
+            [attr.class]="'year-label' + (t.year === 0 ? ' epoch' : '')"
+            text-anchor="middle">{{ t.label }}</text>
+    </g>
+
+    <g class="eras">
+      <ng-container *ngFor="let e of eras; let i = index">
+        <line [attr.x1]="e.x" [attr.x2]="e.x"
+              y1="44" [attr.y2]="height - 6"
+              class="era-line"
+              [class.is-hovered]="hoveredEraIndex === i"></line>
+        <rect [attr.x]="e.x - 8" y="44"
+              width="16" [attr.height]="height - 50"
+              class="era-hit"
+              (mouseenter)="hoverEra(i)"
+              (mouseleave)="hoverEra(null)"
+              (click)="jumpToEra(i); $event.stopPropagation()"></rect>
+        <text [attr.x]="e.x"
+              [attr.y]="height - 10"
+              [attr.transform]="'rotate(-90 ' + e.x + ' ' + (height - 10) + ')'"
+              [attr.class]="'era-label' + (hoveredEraIndex === i ? ' is-hovered' : '')">{{ e.label }}</text>
+      </ng-container>
+    </g>
+
+    <g class="cursor" *ngIf="cursorVisible">
+      <line [attr.x1]="cursorX" [attr.x2]="cursorX"
+            y1="0" [attr.y2]="height"
+            class="cursor-line"
+            shape-rendering="crispEdges"></line>
+      <polygon class="cursor-cap"
+               [attr.points]="(cursorX - 4) + ',0 ' + (cursorX + 4) + ',0 ' + cursorX + ',8'"></polygon>
+      <polygon class="cursor-base"
+               [attr.points]="(cursorX - 4) + ',' + height + ' ' + (cursorX + 4) + ',' + height + ' ' + cursorX + ',' + (height - 8)"></polygon>
+    </g>
+
+    <g class="off" *ngIf="cursorOffLeft">
+      <polygon class="cursor-cap" points="2,28 12,22 12,34"></polygon>
+    </g>
+    <g class="off" *ngIf="cursorOffRight">
+      <polygon class="cursor-cap"
+               [attr.points]="(width - 2) + ',28 ' + (width - 12) + ',22 ' + (width - 12) + ',34'"></polygon>
+    </g>
+  </svg>
+
+  <div class="cursor-readout" *ngIf="cursorVisible" [style.transform]="'translateX(' + cursorX + 'px)'">
+    <span class="anno">anno</span>
+    <span class="plain">{{ cursorPlain }}</span>
+  </div>
+</div>

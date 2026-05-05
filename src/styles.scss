@@ -1,21 +1,96 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Marcellus+SC&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
 
-html,
-body {
-    height: 100%;
-    background-color: #3f51b5;
+:root {
+  --ground-deep:     oklch(0.16 0.012 60);
+  --ground:          oklch(0.20 0.014 60);
+  --ground-raised:   oklch(0.24 0.014 60);
+  --hairline:        oklch(0.36 0.010 60);
+  --hairline-bright: oklch(0.50 0.014 60);
+  --ink-soft:        oklch(0.72 0.018 80);
+  --ink:             oklch(0.92 0.018 80);
+  --ink-bright:      oklch(0.97 0.018 80);
+  --brass:           oklch(0.74 0.115 78);
+  --brass-soft:      oklch(0.62 0.090 75);
+
+  --sp-2xs: 4px;
+  --sp-xs:  8px;
+  --sp-sm:  12px;
+  --sp-md:  16px;
+  --sp-lg:  24px;
+  --sp-xl:  32px;
+  --sp-2xl: 48px;
+  --sp-3xl: 64px;
+
+  --font-display: 'Marcellus SC', 'Cinzel', serif;
+  --font-body:    'EB Garamond', 'Cardo', Georgia, serif;
+
+  --topbar-h:   56px;
+  --timeline-h: 96px;
+
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quick:  cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-body {
-    margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--ground-deep);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-feature-settings: 'kern' 1, 'liga' 1, 'lnum' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
 }
 
-.spacer {
-    flex: 1 1 10px;
+body { font-size: 16px; line-height: 1.6; }
+
+a { color: var(--ink); text-decoration: none; }
+
+button { font-family: inherit; }
+
+::selection {
+  background: color-mix(in oklch, var(--brass) 35%, transparent);
+  color: var(--ink-bright);
 }
 
-@media screen and (max-width:768px)
-{
-     .hidesmall  {display:none !important;}
+.mat-mdc-dialog-surface,
+.cdk-overlay-pane .mat-mdc-dialog-surface {
+  --mdc-dialog-container-color: var(--ground-raised);
+  --mdc-dialog-container-shape: 0;
+  --mdc-dialog-supporting-text-color: var(--ink);
+  --mdc-dialog-subhead-color: var(--ink-bright);
+  background: var(--ground-raised) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: var(--ground-raised);
+  --mdc-snackbar-supporting-text-color: var(--ink);
+  --mdc-snackbar-container-shape: 0;
+  --mat-snack-bar-button-color: var(--brass);
+}
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-radius: 0 !important;
+  border: 1px solid var(--hairline) !important;
+}
+
+.cdk-overlay-dark-backdrop {
+  background: oklch(0.10 0.012 60 / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

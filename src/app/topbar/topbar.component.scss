@@ -1,0 +1,116 @@
+:host {
+  display: block;
+}
+
+.topbar {
+  position: relative;
+  height: var(--topbar-h);
+  background: var(--ground);
+  border-bottom: 1px solid var(--hairline);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 var(--sp-md);
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  color: var(--ink);
+  justify-self: start;
+
+  .mark {
+    color: var(--ink-soft);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    overflow: visible;
+
+    .dot {
+      fill: var(--brass);
+      stroke: none;
+    }
+  }
+
+  .word {
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    color: var(--ink);
+    line-height: 1;
+    margin-top: 1px;
+  }
+
+  .word.mobile { display: none; }
+}
+
+.year {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 500;
+  font-feature-settings: 'lnum' 1, 'kern' 1;
+  color: var(--ink-bright);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  justify-self: center;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-xs);
+  justify-self: end;
+}
+
+.iconbtn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-soft);
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 120ms linear, border-color 120ms linear;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    .solid {
+      fill: currentColor;
+      stroke: none;
+    }
+  }
+
+  &:hover { color: var(--brass); }
+  &:focus-visible {
+    outline: none;
+    color: var(--brass);
+    border-color: var(--hairline-bright);
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    grid-template-columns: auto 1fr auto;
+    padding: 0 var(--sp-sm);
+  }
+  .brand .word.desktop { display: none; }
+  .brand .word.mobile { display: inline; }
+  .year { font-size: 18px; }
+  .actions .style { display: none; }
+}
+
+@media (max-width: 420px) {
+  .actions .iconbtn:not(:last-child) { display: none; }
+}

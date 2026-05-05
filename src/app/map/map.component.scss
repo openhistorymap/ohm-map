@@ -1,31 +1,71 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.ohm-shell {
+  display: grid;
+  grid-template-rows: var(--topbar-h) 1fr var(--timeline-h);
+  height: 100vh;
+  width: 100vw;
+  background: var(--ground-deep);
+  overflow: hidden;
+}
+
+.map-stage {
+  position: relative;
+  overflow: hidden;
+  background: var(--ground-deep);
+}
+
 #ohm_map {
-    height: calc(100vh - 85px - 64px - 16px - 1px);
-    width: 100vw;
+  position: absolute;
+  inset: 0;
 }
 
-#visualization {
-    width: calc(100vw - 1px);
-    max-height: 83px;
-    border: 1px solid lightgray;
+/* Tame MapLibre's default chrome to fit the library aesthetic */
+:host ::ng-deep .maplibregl-ctrl-attrib {
+  background: transparent !important;
+  color: var(--ink-soft) !important;
+  font-family: var(--font-body) !important;
+  font-size: 11px !important;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  padding: 4px 10px !important;
+  margin: 0 !important;
+  pointer-events: auto;
 }
 
-.vis-item.politcs-rome {
-    background-color: red;
+:host ::ng-deep .maplibregl-ctrl-attrib a {
+  color: var(--ink) !important;
 }
 
-.sidebar {
-    width: 256px;
-    background-color: #3f51b5;
-    color: white;
-    a{
-        color:white;
-    }
+:host ::ng-deep .maplibregl-ctrl-attrib a:hover {
+  color: var(--brass) !important;
 }
 
-.info{
-    padding: 16px;
-    color:white;
-    a, a:hover, a:visited{
-        color:white;
-    }
+:host ::ng-deep .maplibregl-ctrl-attrib-button {
+  background: transparent !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 0 !important;
+}
+
+:host ::ng-deep .maplibregl-ctrl-bottom-right,
+:host ::ng-deep .maplibregl-ctrl-bottom-left {
+  bottom: 8px;
+}
+
+:host ::ng-deep .maplibregl-popup-content {
+  background: var(--ground-raised);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+  box-shadow: none;
+  font-family: var(--font-body);
+  padding: 12px 16px;
+}
+
+:host ::ng-deep .maplibregl-popup-tip {
+  display: none;
 }

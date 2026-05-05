@@ -1,94 +1,51 @@
-<mat-toolbar color="primary">
-    <button mat-button mat-icon-button (click)="lbar.toggle()"><mat-icon>menu</mat-icon></button>
-    <h1>OpenHistoryMap</h1>
-    <span class="spacer"></span>
-    <span class="spacer"></span>
-    <span class="spacer"></span>
-    <span class="spacer"></span>
-    <ohm-style-selector (styleChange)="changeStyle($event)"></ohm-style-selector>
-    <button mat-button mat-icon-button class="hidesmall" (click)="info()"><mat-icon>help</mat-icon></button>
-    <span class="spacer"></span>
-    <button mat-button class="hidesmall">{{atDate|decimaldate|date:'d/M/y G - hh:mm:ss'|nicedate}}</button>
-    <button mat-button class="hidesmall" disabled mat-icon-button (click)="startstop()"><mat-icon>{{startstopicon}}</mat-icon></button>
-    <button mat-button class="hidesmall" disabled mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>speed</mat-icon></button>
+<div class="ohm-shell" #screen>
+  <ohm-topbar
+    [year]="atDate"
+    (menu)="aboutBar.toggle()"
+    (info)="aboutBar.toggle()"
+    (share)="copyShare()"
+    (styleChange)="changeStyle($event)"></ohm-topbar>
 
-    <span class="spacer hidesmall"></span>
-    <span class="spacer hidesmall"></span>
-    <span class="spacer hidesmall"></span>
-    <span class="spacer hidesmall"></span>
-    <button mat-button mat-icon-button (click)="copy_url()" class="hidesmall"><mat-icon>share</mat-icon></button>
-    <button disabled mat-button mat-icon-button (click)="rbar.toggle()" class="hidesmall"><mat-icon>menu</mat-icon></button>
-    <button disabled mat-button mat-icon-button (click)="pbar.toggle()" class="hidesmall"><mat-icon>person</mat-icon></button>
-    <button disabled mat-button mat-icon-button (click)="ibar.toggle()" class="hidesmall"><mat-icon>location_on</mat-icon></button>
+  <div class="map-stage">
+    <div id="ohm_map"></div>
+  </div>
 
-</mat-toolbar>
+  <ohm-timeline [year]="atDate" (yearChange)="onYearChange($event)"></ohm-timeline>
 
-<mat-sidenav-container class="example-container">
-    <mat-sidenav class="sidebar" mode="over" #lbar>
-        <div *ngIf="infoData" class="info" [innerHtml]="infoData?.info">
+  <ohm-sidenav #aboutBar title="About" position="start">
+    <div class="prose" *ngIf="infoData?.info" [innerHtml]="infoData.info"></div>
+    <nav class="nav-list">
+      <a target="_blank" rel="noopener" href="https://www.openhistorymap.org/">OHM Home</a>
+      <a target="_blank" rel="noopener" href="https://blog.openhistorymap.org/">OHM Blog</a>
+      <a target="_blank" rel="noopener" href="https://index.openhistorymap.org/">OHM Index</a>
+      <a target="_blank" rel="noopener" href="https://www.openhistorymap.org/about/">About OHM</a>
+      <a target="_blank" rel="noopener" href="https://www.openhistorymap.org/help/">How to help / donate</a>
+    </nav>
+  </ohm-sidenav>
 
-        </div>
-        <mat-nav-list>
-            <a target="_blank" href="https://www.openhistorymap.org/" mat-list-item>OHM Home</a>
-            <a target="_blank" href="https://blog.openhistorymap.org/" mat-list-item>OHM Blog</a>
-            <a target="_blank" href="https://index.openhistorymap.org/" mat-list-item>OHM Index</a>
-            <a target="_blank" href="https://www.openhistorymap.org/about/" mat-list-item>About OHM</a>
-            <a target="_blank" href="https://www.openhistorymap.org/help/" mat-list-item>How to help/donate to OHM</a>
-        </mat-nav-list>
-    </mat-sidenav>
-    <mat-sidenav class="sidebar" mode="over" #ibar position="end">
-        <mat-toolbar>
-            <h1>What is here</h1>
-        </mat-toolbar>
-        
-        <mat-list *ngFor="let event of selectedFeatures">
-            <a mat-list-item (click)="goTimeSpace(event.ohm_from, event.geom)">{{event.properties.name}}</a>
-        </mat-list>
-    </mat-sidenav>
-    <mat-sidenav class="sidebar" mode="over" #rbar position="end">
-        <mat-toolbar color="primary">
-            <h1>Events</h1>
-        </mat-toolbar>
+  <ohm-sidenav #hereBar title="What is here" position="end">
+    <div class="empty" *ngIf="!selectedFeatures?.length">Click a feature on the map.</div>
+    <nav class="nav-list" *ngIf="selectedFeatures?.length">
+      <a *ngFor="let f of selectedFeatures" (click)="goTimeSpace(f.ohm_from, f.geom)">
+        {{ f.properties?.name }}
+        <span class="meta" *ngIf="f.ohm_from">anno {{ f.ohm_from | number:'1.0-0' }}</span>
+      </a>
+    </nav>
+  </ohm-sidenav>
 
-        <mat-list *ngFor="let event of (events|async)">
-            <a mat-list-item (click)="goTimeSpace(event.ohm_from, event.geom)">{{event.properties.name}}</a>
-        </mat-list>
-    </mat-sidenav>
-    <mat-sidenav class="sidebar" mode="over" #pbar position="end">
-        <mat-toolbar color="primary">
-            <h1>Ephemeral</h1>
-        </mat-toolbar>
-
-        <mat-list *ngFor="let event of (events|async)">
-            <a mat-list-item (click)="goTimeSpace(event.ohm_from, event.geom)">{{event.properties.name}}</a>
-        </mat-list>
-    </mat-sidenav>
-    <mat-sidenav class="sidebar" mode="over" #sharebar position="end">
-        <mat-toolbar color="primary">
-            <h1>Sharing</h1>
-            <span class="spacer"></span>
-            <button mat-button mat-icon-button (click)="sharebar.close()" class="hidesmall"><mat-icon>close</mat-icon></button>
-        </mat-toolbar>
-
-        <mat-list>
-            <a share="https://www.facebook.com/sharer/sharer.php?u={{share_link}}" mat-list-item><mat-icon>facebook</mat-icon> Share on Facebook</a>
-            <a share="" mat-list-item><mat-icon>twitter</mat-icon> Share on Twitter</a>
-            <a share="" mat-list-item><mat-icon></mat-icon> Share on Linkedin</a>
-            <a share="" mat-list-item><mat-icon>class</mat-icon> Share on Classroom</a>
-        </mat-list>
-
-    </mat-sidenav>
-    <mat-sidenav-content #screen>
-
-        <mat-menu #menu="matMenu">
-            <button mat-menu-item (click)="setSpeed(5)">Slow</button>
-            <button mat-menu-item (click)="setSpeed(50)">Medium</button>
-            <button mat-menu-item (click)="setSpeed(500)">High</button>
-        </mat-menu>
-        <div class="row">
-            <div id="ohm_map"></div>
-        </div>
-        <div id="visualization"></div>
-    </mat-sidenav-content>
-</mat-sidenav-container>
-<div></div>
+  <ohm-sidenav #shareBar title="Share" position="end">
+    <p class="prose" *ngIf="shareLink">
+      The link <code>{{ shareLink }}</code> has been copied to your clipboard. Send it on.
+    </p>
+    <nav class="nav-list">
+      <a [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shareLink"
+         target="_blank" rel="noopener" *ngIf="shareLink">on Facebook</a>
+      <a [href]="'https://twitter.com/intent/tweet?url=' + shareLink"
+         target="_blank" rel="noopener" *ngIf="shareLink">on Twitter / X</a>
+      <a [href]="'https://www.linkedin.com/sharing/share-offsite/?url=' + shareLink"
+         target="_blank" rel="noopener" *ngIf="shareLink">on LinkedIn</a>
+      <a [href]="'mailto:?body=' + shareLink"
+         *ngIf="shareLink">by Email</a>
+    </nav>
+  </ohm-sidenav>
+</div>

@@ -1,3 +1,19 @@
-<mat-select (selectionChange)="change($event)" [value]="selected" style="width: 150px">
-    <mat-option *ngFor="let style of styles|async" [value]="style.style">{{style.label}}</mat-option>
-</mat-select>
+<div class="wrap">
+  <button class="trigger" type="button" (click)="toggle()" [attr.aria-expanded]="open" aria-haspopup="listbox">
+    <svg class="glyph" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path d="M2.5 5 L8 2.5 L13.5 5 L8 7.5 Z"></path>
+      <path d="M2.5 8 L8 10.5 L13.5 8"></path>
+      <path d="M2.5 11 L8 13.5 L13.5 11"></path>
+    </svg>
+    <span class="label">{{ selectedLabel }}</span>
+  </button>
+  <ul class="menu" *ngIf="open" role="listbox" [attr.aria-label]="'Map style'">
+    <li *ngFor="let s of styles$ | async"
+        role="option"
+        [class.is-selected]="s.style === selected"
+        (click)="pick(s)">
+      <span class="dot" aria-hidden="true"></span>
+      <span class="opt-label">{{ s.label }}</span>
+    </li>
+  </ul>
+</div>

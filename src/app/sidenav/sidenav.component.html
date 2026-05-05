@@ -1,0 +1,19 @@
+<div class="ohm-sidenav-scrim" *ngIf="open" (click)="close()" aria-hidden="true"></div>
+<aside class="ohm-sidenav-panel"
+       [class.is-open]="open"
+       [attr.data-position]="position"
+       role="dialog"
+       [attr.aria-hidden]="!open"
+       [attr.aria-label]="title">
+  <header class="ohm-sidenav-head">
+    <span class="ohm-sidenav-title">{{ title }}</span>
+    <button class="ohm-sidenav-close" type="button" (click)="close()" aria-label="Close">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+        <path d="M3 3 L13 13 M13 3 L3 13"></path>
+      </svg>
+    </button>
+  </header>
+  <div class="ohm-sidenav-body">
+    <ng-content></ng-content>
+  </div>
+</aside>
