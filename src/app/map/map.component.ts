@@ -214,9 +214,12 @@ export class MapComponent implements OnInit {
 
   private refreshTileSource(id: string): void {
     const src: any = this.map.getSource(id);
-    if (src && typeof src.setTiles === 'function' && Array.isArray(src.tiles)) {
-      src.setTiles(src.tiles);
-    }
+    if (!src || typeof src.setTiles !== 'function' || !Array.isArray(src.tiles)) return;
+    src._ohmOriginalTiles ??= src.tiles.slice();
+    const refreshed = src._ohmOriginalTiles.map((url: string) =>
+      url.replace('{atDate}', this.atDate.toString())
+    );
+    src.setTiles(refreshed);
   }
 
   changeStyle(style: string): void {
