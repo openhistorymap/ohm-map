@@ -144,6 +144,18 @@ export class MapComponent implements OnInit, AfterViewInit {
     this.changeUrl(year);
   }
 
+  onFlyTo(target: { year: number; lng?: number; lat?: number; zoom?: number }) {
+    if (!this.map) return;
+    if (target.lng === undefined || target.lat === undefined) return;
+    this.map.flyTo({
+      center: [target.lng, target.lat],
+      zoom: target.zoom ?? this.map.getZoom(),
+      duration: 1600,
+      essential: true,
+      easing: (t) => 1 - Math.pow(1 - t, 4)
+    });
+  }
+
   changeUrl(ev: number | null = null): void {
     if (!this.map) return;
     const c = this.map.getCenter();

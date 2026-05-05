@@ -10,7 +10,10 @@
     <div id="ohm_map"></div>
   </div>
 
-  <ohm-timeline [year]="atDate" (yearChange)="onYearChange($event)"></ohm-timeline>
+  <ohm-timeline
+    [year]="atDate"
+    (yearChange)="onYearChange($event)"
+    (flyTo)="onFlyTo($event)"></ohm-timeline>
 
   <ohm-sidenav #aboutBar title="About" position="start">
     <div class="prose" *ngIf="infoData?.info" [innerHtml]="infoData.info"></div>

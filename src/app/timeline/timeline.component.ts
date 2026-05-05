@@ -5,22 +5,24 @@ import {
 import { HttpClient } from '@angular/common/http';
 
 interface Tick { year: number; x: number; major: boolean; label?: string; }
-interface Era  { year: number; x: number; label: string; }
-interface EraSource { year: number; label: string; }
+interface EraSource { year: number; label: string; lng?: number; lat?: number; zoom?: number; }
+interface Era extends EraSource { x: number; }
+
+export interface EraFlyTarget { year: number; lng?: number; lat?: number; zoom?: number; label?: string; }
 
 const FALLBACK_ERAS: EraSource[] = [
-  { year: -753, label: 'Founding of Rome' },
-  { year: -509, label: 'Roman Republic' },
-  { year:  330, label: 'Constantinople' },
-  { year:  476, label: 'Fall of the West' },
-  { year:  622, label: 'Hijra' },
-  { year:  800, label: 'Charlemagne crowned' },
-  { year: 1066, label: 'Hastings' },
-  { year: 1453, label: 'Constantinople falls' },
-  { year: 1492, label: 'Columbus' },
-  { year: 1789, label: 'French Revolution' },
-  { year: 1914, label: 'Great War' },
-  { year: 1945, label: 'Atomic Age' },
+  { year: -753, label: 'Founding of Rome',     lng:  12.50, lat:  41.90, zoom: 6 },
+  { year:  330, label: 'Constantinople',       lng:  28.98, lat:  41.01, zoom: 5 },
+  { year:  476, label: 'Fall of the West',     lng:  12.50, lat:  41.90, zoom: 4 },
+  { year:  622, label: 'Hijra',                lng:  39.61, lat:  24.47, zoom: 5 },
+  { year:  800, label: 'Charlemagne crowned',  lng:   6.08, lat:  50.78, zoom: 5 },
+  { year: 1066, label: 'Hastings',             lng:   0.49, lat:  50.91, zoom: 8 },
+  { year: 1453, label: 'Constantinople falls', lng:  28.98, lat:  41.01, zoom: 6 },
+  { year: 1492, label: 'Columbus',             lng: -77.43, lat:  23.95, zoom: 4 },
+  { year: 1789, label: 'French Revolution',    lng:   2.35, lat:  48.86, zoom: 5 },
+  { year: 1914, label: 'Great War',            lng:   4.40, lat:  50.85, zoom: 4 },
+  { year: 1945, label: 'Atomic Age',           lng: 132.45, lat:  34.39, zoom: 5 },
+  { year: 1989, label: 'Wall falls',           lng:  13.38, lat:  52.52, zoom: 6 },
 ];
 
 @Component({
@@ -32,6 +34,7 @@ const FALLBACK_ERAS: EraSource[] = [
 export class OhmTimelineComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @Input() year: number = 866;
   @Output() yearChange = new EventEmitter<number>();
+  @Output() flyTo = new EventEmitter<EraFlyTarget>();
   @Input() eraSource = 'assets/eras.json';
 
   @ViewChild('host', { static: true }) hostRef!: ElementRef<HTMLDivElement>;
@@ -149,7 +152,7 @@ export class OhmTimelineComponent implements OnInit, AfterViewInit, OnChanges, O
 
     this.eras = this.allEras
       .filter(e => e.year >= this.viewStart && e.year <= this.viewEnd)
-      .map(e => ({ year: e.year, x: this.xFor(e.year), label: e.label }));
+      .map(e => ({ ...e, x: this.xFor(e.year) }));
 
     this.updateCursorXOnly();
   }
@@ -225,6 +228,9 @@ export class OhmTimelineComponent implements OnInit, AfterViewInit, OnChanges, O
     this.cursorYear = e.year;
     this.updateCursorXOnly();
     this.yearChange.emit(e.year);
+    if (e.lng !== undefined && e.lat !== undefined) {
+      this.flyTo.emit({ year: e.year, lng: e.lng, lat: e.lat, zoom: e.zoom, label: e.label });
+    }
   }
 
   hoverEra(idx: number | null) {
